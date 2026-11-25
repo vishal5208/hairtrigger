@@ -150,6 +150,30 @@ Two sizes in the table are deliberately different and should not be conflated. *
 
 **Reading it.** The speed premium is the paired difference column: on the identical 0.0004 WETH trade, the 2 s arm filled at a strictly better price than the 12 s arm in **every** round — median **+0.0000053 WETH per trade (~134 bps on the 0.0004 input)**, i.e. the fast arm nets ~22% more than the slower copy of itself. The `gap_still_open_at_7s` column is `true` in 27 of 28 rounds. The single exception is round 32, where the converged gap was thin enough (162 bps at detection, 53 bps at the fast fill) that the 7 s-late control netted −30 bps against a +72 bps fast fill: when the gap is small, the speed advantage is the difference between profit and loss. In the wide-gap rounds the residual stays open after 7 s because there is no third-party competition and the arber is deliberately dust-sized — that is the disclosed lower-bound caveat, not a refutation of the speed advantage. The two seconds is the whole point; the callback leg (~3 s) is the bottleneck, and the observation leg is sub-second.
 
+### The gap floor — where speed stops mattering
+
+Gas is not the binding cost, and because the trade size is fixed it is also flat across the run: the arbitrage is a constant 0.0004 WETH on both arms, so gas is **4.82 bps of the trade on the fast arm** (128,429 gas) and **1.00 bps on the control** (80,266 gas) — the three control fills that paid a 3× base fee reach 3.01 bps. What sets the floor is the round-trip the fill must overcome: the 30 bps swap fee plus the price impact of the 0.0004 order itself. That is why the break-even is tens of bps, not single digits, and why "the trade covers gas" is almost never the real question.
+
+Fitting `net_bps` against the **detected** gap across all 28 rounds (slope ≈ 1, so profit tracks the gap almost one-for-one) puts the break-even at:
+
+| Arm | net = 0 at detected gap | smallest gap that actually netted |
+|---|---:|---:|
+| Fast (2 s) | ≈ 91 bps | 162 bps (+73 bps net) |
+| Control (+7 s) | ≈ 206 bps | 218 bps (+23 bps net) |
+
+The fast figure below 162 bps is an extrapolation — that is the smallest gap this run produced — but the crossover itself is measured, on consecutive rounds as the gap converged:
+
+| Round | Detected gap | Fast net | Control net |
+|---:|---:|---:|---:|
+| 27 | 460 bps | +365 bps | +252 bps |
+| 28 | 397 bps | +304 bps | +193 bps |
+| 29 | 336 bps | +244 bps | +135 bps |
+| 30 | 277 bps | +185 bps | +78 bps |
+| 31 | 218 bps | +128 bps | +23 bps |
+| 32 | 162 bps | +73 bps | -31 bps |
+
+So how small a gap is still worth taking depends on your deadline: **below ~200 bps of detected gap the +7 s fill stops covering costs, while the 2 s fill stays profitable down to roughly half that.** The ~115 bps between the two break-evens is what the two-second deadline is worth in this pool — the ground the +7 s fill gives up before it executes. It is a falsifiable claim rather than a stopwatch reading: it names where the slower trade loses money, and round 32 is that round. Both figures are specific to this liquidity (0.05 WETH seed, fixed 0.0004 order); a larger order or a deeper pool raises the impact/fee line and the break-even with it, while the *gap* between the two arms is what speed contributes. (Both tables and the gas figures are emitted by `python3 analysis/breakeven.py` from the same CSV.)
+
 ### Per-arm ledger
 
 | Round | Arm | Gross (WETH) | Net (WETH) | Net (bps) | Gas used | Gas cost (WETH) | Callback cost (RNK) | Fill tx |
