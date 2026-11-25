@@ -1,0 +1,8 @@
+{
+  "lib/forge-std": {
+    "rev": "15b2df92a05d4d2f76a06653872fefb287e0e01c"
+  },
+  "lib/reactive-lib-omni": {
+    "rev": "3ade0dcf1d27e67e5783ef807e73a1b9e0c0cce8"
+  }
+}

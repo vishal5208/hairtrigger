@@ -1,0 +1,10 @@
+.env
+cache/
+out/
+broadcast/
+analysis/__pycache__/
+logs/
+data/keeper_state.json
+data/rounds_raw.jsonl
+data/archive-*/
+PROGRESS.md

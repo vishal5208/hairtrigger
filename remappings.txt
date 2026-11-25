@@ -1,0 +1,3 @@
+forge-std/=lib/forge-std/src/
+reactive-lib/=lib/reactive-lib-omni/src/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
