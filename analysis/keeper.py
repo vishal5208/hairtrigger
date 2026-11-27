@@ -63,6 +63,7 @@ CSV_FIELDS = [
     "amount_out_htrg",
     "origin_block",
     "detected_block",
+    "detected_tx",
     "fill_block",
     "origin_timestamp",
     "reactive_timestamp",
@@ -133,6 +134,10 @@ def decode_gap(log):
         # Lasna block holding this log: same block that emitted CallbackRequest, because
         # react() requests the callback synchronously. Used for latency_msg_sec.
         "lasna_block": int(log["blockNumber"], 16) if isinstance(log["blockNumber"], str) else log["blockNumber"],
+        # Lasna tx that emitted this GapDetected, so a rebuild from raw keeps the provenance
+        # link. Note this is the reactive transaction addressed to the system contract
+        # (0x8888...8888) that invoked react(); the reactive address is only the log emitter.
+        "detected_tx": log["transactionHash"],
     }
 
 
@@ -451,6 +456,7 @@ def rebuild_csv():
                         "amount_out_htrg": _eth(fill["amount_out"]),
                         "origin_block": _cell(rec.get("origin_block")),
                         "detected_block": _cell(rec.get("lasna_block")),
+                        "detected_tx": _cell(rec.get("detected_tx")),
                         "fill_block": _cell(fill.get("block")),
                         "origin_timestamp": _cell(rec.get("origin_timestamp")),
                         "reactive_timestamp": _cell(rec.get("reactive_timestamp")),

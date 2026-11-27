@@ -154,6 +154,28 @@ def main():
         print(f"- Median paired difference (fast − control): {weth(median(paired))} WETH")
 
     print()
+    print("### Transaction provenance (four hashes per round)")
+    print()
+    print("| Round | origin_tx (swap) | detected_tx (Lasna react) | fast fill_tx | control fill_tx |")
+    print("|---:|---|---|---|---|")
+
+    def hs(value):
+        return f"`{value}`" if value else "—"
+
+    for round_id in sorted(rounds):
+        pair = rounds[round_id]
+        fast, control = pair.get("fast"), pair.get("control")
+        base = fast or control
+        origin_tx = (base or {}).get("origin_tx") or ""
+        detected_tx = (base or {}).get("detected_tx") or ""
+        f_fill = fast["fill_tx"] if fast else ""
+        c_fill = control["fill_tx"] if control else ""
+        print(
+            f"| {round_id} | {hs(origin_tx)} | {hs(detected_tx)} "
+            f"| {hs(f_fill)} | {hs(c_fill)} |"
+        )
+
+    print()
     print("### Per-arm ledger")
     print()
     print("| Round | Arm | Gross (WETH) | Net (WETH) | Net (bps) | Gas used | Gas cost (WETH) "
