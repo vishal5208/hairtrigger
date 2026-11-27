@@ -91,6 +91,8 @@ Let `sqrtPriceX96 = sqrt(HTRG per WETH) * 2^96`. Higher means HTRG is cheaper.
 
 The CSV is long-format, one row per arm per round keyed by `round_id`, so the two arms pair by round id and nothing else.
 
+Compute is not the bottleneck. 25 of the 28 fast fills consumed exactly 128,429 gas and the other 3 consumed 128,465 — a 36-gas range, 32% of the 400,000 `gasLimit` in the `CallbackRequest`. `gasLimit` is a ceiling on what the callback may burn, not a bid for inclusion, so callback cost is constant by construction. The 2 to 3 second callback leg is therefore relayer transit plus destination block inclusion, not contract execution. The one remaining uncertainty is the origin-to-Lasna leg, which resolves to -1 to 0 seconds at whole-second resolution.
+
 Three limits, stated plainly:
 
 - **Timestamps are whole-second, and the msg leg is clock quantization.** Base and Unichain produce sub-second blocks, but EVM block timestamps are whole seconds, so every latency is quantized to ±1 s; a one-second fill and a 1.9-second fill are indistinguishable on-chain, and we report what the chains report. We do not report a separate "reactive decision" latency: `requestCallbackV_1_0` is called inside `react()`, so `GapDetected` and the system's `CallbackRequest` land in the same Lasna block and their difference is identically zero — the decision is synchronous and sub-block, and the only measurable legs are message delivery and callback execution. The origin→Lasna observation leg reads **−1 to 0 s in all 28 rounds**, which cannot be true elapsed time; it is quantization between the two chains' unsynchronized clocks, not a negative latency. That skew is also why the callback sub-leg (3 s) can read one second *above* the full end-to-end span (2 s): the sub-leg is counted from a start point that rounds to about one second after the origin swap. `msg + callback = end_to_end` holds exactly in all 28 fills; we do not promote the sub-leg over the whole span.
@@ -149,6 +151,18 @@ Two sizes in the table are deliberately different and should not be conflated. *
 - Median paired difference (fast − control): 0.000005345 WETH
 
 **Reading it.** The paired difference column is the delayed-fill penalty: on the identical 0.0004 WETH trade, the 2 s arm filled at a strictly better price than our own 12 s copy in every round — median **+0.0000053 WETH per trade (~134 bps on the 0.0004 input)**, i.e. the fast arm nets ~22% more than the slower copy of itself. The `gap_still_open_at_7s` column is `true` in 27 of 28 rounds. The single exception is round 32, where the converged gap was thin enough (162 bps at detection, 53 bps at the fast fill) that the 7 s-late control netted −30 bps against a +72 bps fast fill: when the gap is small, ~7 s of lateness is the difference between profit and loss. In the wide-gap rounds the residual stays open after 7 s because there is no third-party competition and the arber is deliberately dust-sized — that is the disclosed lower-bound caveat, not a refutation of the per-trade decay measured here. The two seconds is the whole point; the callback leg (~3 s) is the bottleneck, and the observation leg is sub-second.
+
+### The delivery floor — what the network costs with no contract logic
+
+To separate the network's delivery cost from our contract's, a second reactive contract was deployed that does nothing but request a trivial callback to a no-op executor on the same destination (Unichain Sepolia). It subscribes to plain ERC20 `Transfer` events on Base Sepolia; the callback payload carries no trading logic and the executor only emits a timestamped event. Over 20 deliveries (`analysis/pingfloor.py`, `PingReactive` `0xf6b3cd0FA15d4eb29719e68489DAd8A645a8f202` on Lasna, `PingExecutor` `0xf10502b11891a5188972917f3f25c6f469ff071c` on Unichain):
+
+| leg | median | min | max |
+|---|---|---|---|
+| callback (Lasna reaction → delivery) | 3 s | 2 s | 4 s |
+| end-to-end (origin block → delivery) | 2 s | 2 s | 3 s |
+| message (origin block → Lasna reaction) | −1 s | −1 s | 0 s |
+
+These are the arb callbacks' numbers: callback leg median 3 s, end-to-end median 2 s. A callback that performs no contract work arrives in the same time as the one that executes the trade, so the 2–3 seconds is relayer transit plus destination block inclusion — the network's floor, not Hairtrigger's execution. The no-op also ran at a 200,000 gas limit against the arb callback's 400,000 and delivered in the same time, corroborating that `gasLimit` is a ceiling and not a priority. Gas remaining at delivery was essentially constant (22,888, two trials at 22,899 of the forwarded budget), as expected for a fixed payload. The message leg again reads −1..0 s, the same whole-second clock quantization described in the limitations.
 
 ### The gap floor — where speed stops mattering
 
