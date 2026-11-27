@@ -1,5 +1,7 @@
 # Hairtrigger: what seven seconds of cross-chain latency costs
 
+**Live demo:** [vishal5208.github.io/hairtrigger/](https://vishal5208.github.io/hairtrigger/)
+
 One trade, executed twice on the same price gap: once the moment the Reactive callback lands, once held to a contract-enforced 7-second gate. Over 28 rounds the fast fill was better priced in 28 of 28.
 
 At a 162 bps gap the 2-second fill netted +72 bps and the 7-second fill netted −30 bps on the identical trade. Fitted across all 28 rounds, break-even sits at about 91 bps of detected gap for the fast fill and about 206 bps for the late one. The 115 bps between those floors is what those seconds are worth in this pool.
