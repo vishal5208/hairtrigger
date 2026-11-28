@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Hairtrigger — what being second into a pool costs</title>
-<meta name="description" content="A paired on-chain experiment on an identical cross-chain arbitrage trade. At the tightest gap of the run the fast fill netted +72 bps and the copy behind it −30; the difference is the first fill's footprint. Fitted break-evens sit at 91 and 206 bps." />
+<meta name="description" content="A paired on-chain experiment: the same cross-chain WETH/HTRG arbitrage traded fast vs late. Across 28 rounds the fast fill beat the later copy 28/28 — median ≈134 bps per trade — because the second trader into the pool pays the first fill's footprint." />
 <style>
   :root{
     --bg:#ffffff; --bg-alt:#f6f6f3; --card:#ffffff;
@@ -188,6 +188,12 @@
     </div>
   </div>
 
+  <div class="container" style="padding-top:6px">
+    <div class="callout">
+      <b>The delivery floor is not a fee we can bid away.</b> In the callback configuration <code>gasLimit</code> is a compute ceiling, not a priority bid. A no-op reactive that does nothing but request a trivial callback arrived in the same 2–3&nbsp;s as the trading callback (median callback leg 3&nbsp;s over 20 deliveries; the arb's own callback leg is 3&nbsp;s over 28 rounds) — and running it at 200,000 gas against the arb's 400,000 changed nothing. Reactive's documentation states that a higher <code>gasLimit</code> does not accelerate delivery or increase priority, and the config carries only <code>chainId</code>, <code>recipient</code>, <code>gasLimit</code> and <code>payload</code>, with no priority field (<a href="https://dev.reactive.network/economy" target="_blank" rel="noopener">dev.reactive.network</a>). So the 2–3&nbsp;s callback leg on the Lasna→Unichain path in our runs is relayer transit plus destination block inclusion — the floor of that path, not a number we tuned.
+    </div>
+  </div>
+
   <section id="how">
     <div class="container">
       <div class="sec-head">
@@ -337,10 +343,6 @@
           <h4>No claim finer than a second</h4>
           <p>A one-second fill and a 1.9-second fill are indistinguishable on-chain. The 2&nbsp;s median is 19 of 28 rounds at exactly 2&nbsp;s; the defensible statement is the measured span, quantized.</p>
         </div>
-      </div>
-
-      <div class="callout">
-        <b>The delivery floor is not a fee we can bid away.</b> In the callback configuration <code>gasLimit</code> is a compute ceiling, not a priority bid. A no-op reactive that does nothing but request a trivial callback arrived in the same 2–3&nbsp;s as the trading callback (median callback leg 3&nbsp;s over 20 deliveries; the arb's own callback leg is 3&nbsp;s over 28 rounds) — and running it at 200,000 gas against the arb's 400,000 changed nothing. Reactive's documentation states that a higher <code>gasLimit</code> does not accelerate delivery or increase priority, and the config carries only <code>chainId</code>, <code>recipient</code>, <code>gasLimit</code> and <code>payload</code>, with no priority field (<a href="https://dev.reactive.network/economy" target="_blank" rel="noopener">dev.reactive.network</a>). So the 2–3&nbsp;s callback leg on the Lasna→Unichain path in our runs is relayer transit plus destination block inclusion — the floor of that path, not a number we tuned.
       </div>
 
       <p class="sec-sub" style="margin-top:22px"><strong>Profit is mark-to-market:</strong> HTRG bought on the destination is valued at the origin venue's post-swap spot price. Nothing is sold and nothing crosses a bridge; the tokens are independent deployments. The experiment measures the first fill's footprint on the second entry — the cost of being second into the pool.</p>
