@@ -15,7 +15,8 @@ interface IWETHDeposit {
 /// @dev Must run after the reactive contract exists (its address is pinned in the executor).
 ///      The callback proxy bills the executor in native ETH per callback; the executor also
 ///      needs WETH to swap. FUND_ETH and FUND_WETH cover both, in the same script run.
-///      Each round spends 2 x TRADE_WETH (fast + control), so 0.1 WETH covers ~12 paired rounds.
+///      Each round spends up to 2 x MAX_TRADE_WETH (fast + control); trades are sized dynamically
+///      per gap, so fund at least a few times MAX_TRADE_WETH of WETH for a run.
 ///      Env: PRIVATE_KEY, CALLBACK_PROXY, REACTIVE, WETH, POOL,
 ///           FUND_WETH (default 0), FUND_ETH (default 0).
 contract DeployExecutor is Script {

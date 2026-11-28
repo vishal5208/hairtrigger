@@ -1,9 +1,11 @@
 """Break-even analysis: the detected gap (bps) at which each arm's fill stops covering costs.
 
-The arbitrage trade is a constant 0.0004 WETH on both arms, so gas expressed in bps of the
-trade is flat across the run (it does not move with flow size — only the resulting gap does).
-We fit net_bps against the gap at detection (slope ~1, so profit tracks the gap one-for-one)
-and report where net crosses zero per arm, plus the observed crossover rounds.
+Applies to the Version 1 fixed-size run only (data/archive/fixed-size/): the arbitrage trade is a
+constant 0.0004 WETH on both arms, so gas expressed in bps of the trade is flat across the run (it
+does not move with flow size — only the resulting gap does). We fit net_bps against the gap at
+detection (slope ~1, so profit tracks the gap one-for-one) and report where net crosses zero per
+arm, plus the observed crossover rounds. Version 2 sizes each trade dynamically, where this linear
+model does not hold — use analysis/sizing.py for that data.
 
 Writes nothing; prints markdown to paste into the README. Reads data/rounds.csv.
 """
@@ -51,7 +53,11 @@ def main():
         r["_flow"] = float(r["flow_size_weth"])
 
     amts = {r["_amt"] for r in rows}
-    assert len(amts) == 1, f"trade size is not constant: {amts}"
+    if len(amts) != 1:
+        sys.exit(
+            f"dynamic sizing detected ({len(amts)} distinct trade sizes): the linear break-even model "
+            "applies only to the Version 1 fixed-size run (data/archive/fixed-size/). See analysis/sizing.py."
+        )
 
     # --- gas in bps of the fixed trade, per arm ---
     print("### Gas in bps of the fixed 0.0004 WETH trade")
@@ -75,7 +81,7 @@ def main():
         be[arm] = -a / b
         pos = sorted(x for x, y in pts if y > 0)
         if pos:
-            smallest = f"{pos[0]} bps (+{min(y for x, y in pts if y > 0):.0f} bps net)"
+            smallest = f"{pos[0]} bps (+{int(min(y for x, y in pts if y > 0))} bps net)"
         else:
             smallest = "none"
         label = "Fast (2 s)" if arm == "fast" else "Control (+7 s)"
@@ -95,10 +101,12 @@ def main():
         pair = by_round[rid]
         c = pair["control"]
         f = pair.get("fast")
+        # Truncate toward zero (int()) so these match keeper.py's net_profit_bps column and the
+        # per-round ledger (sign(net) * floor(abs(net)*BPS/amount_in)), rather than rounding.
         print(
             f"| {rid} | {c['_det']} bps | "
-            f"{'+' if float(f['_net_bps']) >= 0 else ''}{float(f['_net_bps']):.0f} bps | "
-            f"{'+' if float(c['_net_bps']) >= 0 else ''}{float(c['_net_bps']):.0f} bps |"
+            f"{'+' if f['_net_bps'] >= 0 else ''}{int(f['_net_bps'])} bps | "
+            f"{'+' if c['_net_bps'] >= 0 else ''}{int(c['_net_bps'])} bps |"
         )
 
 

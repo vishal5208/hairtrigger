@@ -7,4 +7,8 @@ logs/
 data/keeper_state.json
 data/rounds_raw.jsonl
 data/archive-*/
+data/v2-attempt1/
+data/v2-rounds_raw.jsonl
+data/archive/fixed-size/rounds_raw.jsonl
+data/archive/fixed-size/keeper_state.json
 PROGRESS.md

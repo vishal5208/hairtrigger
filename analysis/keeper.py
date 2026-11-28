@@ -350,7 +350,7 @@ def process_round(cfg, state, gap):
     gap["origin_timestamp"] = context["origin_timestamp"]
     origin_price = context["origin_price"] or gap["origin_price_at_detect"]
 
-    fast = poll_fill(cfg, gap["dest_chain"], gap["round"], 0, timeout=120)
+    fast = poll_fill(cfg, gap["dest_chain"], gap["round"], 0, timeout=20)
     if fast is None:
         print(f"  ! round {gap['round']}: fast arm fill not found")
         rec["status"] = "fast_missing"
@@ -359,7 +359,7 @@ def process_round(cfg, state, gap):
         print(f"  fast: {fast['amount_out']} HTRG @ {fast['timestamp']} ({fast['tx']})")
 
     if not cfg.dry_run:
-        control = poll_fill(cfg, gap["dest_chain"], gap["round"], 1, timeout=120)
+        control = poll_fill(cfg, gap["dest_chain"], gap["round"], 1, timeout=20)
         if control is None:
             print(f"  ! round {gap['round']}: control fill not found after send")
             rec["status"] = "control_missing"

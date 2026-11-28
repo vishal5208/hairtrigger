@@ -36,8 +36,17 @@ contract ArbExecutor is AbstractCallback {
         uint256 filledAt
     );
 
+    /// @notice roundId => arm => whether that (round, arm) pair has already executed.
+    mapping(uint256 => mapping(uint8 => bool)) public filled;
+    /// @notice Emergency stop for both arms; the owner can still withdraw while paused.
+    bool public paused;
+
+    event PausedSet(bool paused);
+
     error NotOwner(address caller_);
     error TooEarly(uint256 now_, uint256 allowedAt_);
+    error AlreadyFilled(uint256 roundId, uint8 arm);
+    error Paused();
 
     constructor(IPayable callbackProxy_, address callbackSender_, address weth_, IMockPool pool_, address owner_)
         AbstractCallback(callbackProxy_, callbackSender_)
@@ -59,6 +68,7 @@ contract ArbExecutor is AbstractCallback {
         onlyServiceProvider
         onlyCallbackSender(reactive_)
     {
+        if (paused) revert Paused();
         _trade(roundId_, 0, amountIn_, minAmountOut_, detectedAt_);
     }
 
@@ -67,6 +77,7 @@ contract ArbExecutor is AbstractCallback {
     ///      trade would actually fill at 7 seconds late, not to gate it.
     function runControl(uint256 roundId_, uint256 amountIn_, uint64 detectedAt_) external {
         if (msg.sender != owner) revert NotOwner(msg.sender);
+        if (paused) revert Paused();
 
         uint256 allowedAt = uint256(detectedAt_) + CONTROL_DELAY;
         if (block.timestamp < allowedAt) revert TooEarly(block.timestamp, allowedAt);
@@ -74,9 +85,24 @@ contract ArbExecutor is AbstractCallback {
         _trade(roundId_, 1, amountIn_, 0, detectedAt_);
     }
 
+    /// @notice Emergency stop for both arms.
+    function setPaused(bool paused_) external {
+        if (msg.sender != owner) revert NotOwner(msg.sender);
+        paused = paused_;
+        emit PausedSet(paused_);
+    }
+
     function _trade(uint256 roundId_, uint8 arm_, uint256 amountIn_, uint256 minAmountOut_, uint64 detectedAt_)
         internal
     {
+        // Replay guard: a duplicated callback (or a resubmitted control) must not fill twice.
+        if (filled[roundId_][arm_]) revert AlreadyFilled(roundId_, arm_);
+        filled[roundId_][arm_] = true;
+
+        // Sizing is dynamic, so clamp to the inventory we actually hold instead of reverting.
+        uint256 balance = IERC20(weth).balanceOf(address(this));
+        if (amountIn_ > balance) amountIn_ = balance;
+        if (amountIn_ == 0) return;
         uint256 amountOut = pool.swap(true, amountIn_, minAmountOut_, address(this));
         emit Fill(roundId_, arm_, amountIn_, amountOut, pool.sqrtPriceX96(), detectedAt_, block.timestamp);
     }
