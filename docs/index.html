@@ -317,7 +317,7 @@
         <div class="legend">
           <span><i style="background:var(--accent)"></i>Fast arm (2&nbsp;s)</span>
           <span><i style="background:var(--control)"></i>Control arm (+7&nbsp;s)</span>
-          <span><i style="background:#e0e0da"></i>Fitted region — not measured</span>
+          <span><i style="background:#ecebe4"></i>Not measured — fitted</span>
         </div>
       </div>
 
@@ -434,61 +434,81 @@ python3 analysis/sizing.py</pre>
     [218, 128,  23],
     [162,  72, -30]
   ];
-  var W=760, H=360, padL=54, padR=26, padT=26, padB=46;
+  var W=880, H=440, padL=64, padR=120, padT=28, padB=60;
   var plotW=W-padL-padR, plotH=H-padT-padB;
-  var gMin=80, gMax=480, nMin=-60, nMax=400;
-  function X(g){ return padL + (gMax-g)/(gMax-gMin)*plotW; }
+  var gMin=60, gMax=480, nMin=-80, nMax=400;
+  var BE_FAST=91, BE_CTRL=206, MEAS_START=162;
+  var TEAL='#0f766e', TEALINK='#0b4f49', GREY='#9aa1ad', NEG='#c0372e',
+      FAINT='#8a92a0', MUTED='#5b6472', GRID='#ececE7', ZERO='#c8c8c2', BAND='#ecebe4';
+  var MONO='ui-monospace,SFMono-Regular,Menlo,monospace', SANS='ui-sans-serif,system-ui,sans-serif';
+  function X(g){ return padL + (g-gMin)/(gMax-gMin)*plotW; }
   function Y(v){ return padT + (nMax-v)/(nMax-nMin)*plotH; }
+  function fx(g){ return g-BE_FAST; }   // fitted fast-arm net (bps)
+  function cx(g){ return g-BE_CTRL; }   // fitted control-arm net (bps)
 
   var s = '';
-  s += '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Net profit in basis points versus detected gap in basis points, for the fast and control arms.">';
+  s += '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Net profit in basis points versus detected gap in basis points. The fast arm crosses zero at 91 bps; the seven-second control at 206 bps.">';
 
-  // fitted region (right of last measured point g=162)
-  var xMeasuredRight = X(162);
-  s += '<rect x="'+xMeasuredRight+'" y="'+padT+'" width="'+(W-padR-xMeasuredRight)+'" height="'+plotH+'" fill="#efefeb" opacity="0.7"/>';
-  s += '<text x="'+(xMeasuredRight+10)+'" y="'+(padT+16)+'" font-family="ui-monospace,monospace" font-size="11" fill="#8a92a0">fitted · not measured</text>';
+  // Shaded band: gaps below the smallest measured (162 bps) are fitted, not measured.
+  s += '<rect x="'+X(gMin)+'" y="'+padT+'" width="'+(X(MEAS_START)-X(gMin))+'" height="'+plotH+'" fill="'+BAND+'"/>';
+  s += '<text x="'+((X(gMin)+X(MEAS_START))/2)+'" y="'+(padT+16)+'" text-anchor="middle" font-family="'+MONO+'" font-size="10" letter-spacing="1.5" fill="'+FAINT+'">NOT MEASURED</text>';
 
   // y gridlines + labels
-  var yTicks=[-60,0,100,200,300,400];
-  yTicks.forEach(function(v){
-    var y=Y(v);
-    s += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="'+(v===0?'#c8c8c2':'#ececE7')+'" stroke-width="1"'+(v===0?' stroke-dasharray="4 4"':'')+'/>';
-    s += '<text x="'+(padL-10)+'" y="'+(y+4)+'" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#8a92a0">'+v+'</text>';
+  [-60,0,100,200,300,400].forEach(function(v){
+    var y=Y(v), zero=(v===0);
+    s += '<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="'+(zero?ZERO:GRID)+'" stroke-width="'+(zero?1.4:1)+'"'+(zero?' stroke-dasharray="5 4"':'')+'/>';
+    s += '<text x="'+(padL-10)+'" y="'+(y+4)+'" text-anchor="end" font-family="'+MONO+'" font-size="11" fill="'+FAINT+'">'+v+'</text>';
   });
-  // x labels
-  [160,220,280,340,400,460].forEach(function(g){
+  // x ticks + labels
+  [100,150,200,250,300,350,400,450].forEach(function(g){
     var x=X(g);
-    s += '<text x="'+x+'" y="'+(H-padB+20)+'" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#8a92a0">'+g+'</text>';
+    s += '<line x1="'+x+'" y1="'+(padT+plotH)+'" x2="'+x+'" y2="'+(padT+plotH+5)+'" stroke="'+ZERO+'"/>';
+    s += '<text x="'+x+'" y="'+(H-padB+20)+'" text-anchor="middle" font-family="'+MONO+'" font-size="11" fill="'+FAINT+'">'+g+'</text>';
   });
-  s += '<text x="'+(padL+plotW/2)+'" y="'+(H-6)+'" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="12" fill="#5b6472">detected gap (bps) →</text>';
-  s += '<text x="14" y="'+(padT+plotH/2)+'" text-anchor="middle" transform="rotate(-90 14 '+(padT+plotH/2)+')" font-family="ui-sans-serif,system-ui" font-size="12" fill="#5b6472">realized net (bps)</text>';
+  // axis titles
+  s += '<text x="'+(padL+plotW/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="'+SANS+'" font-size="12" fill="'+MUTED+'">detected gap (bps) →</text>';
+  s += '<text x="14" y="'+(padT+plotH/2)+'" text-anchor="middle" transform="rotate(-90 14 '+(padT+plotH/2)+')" font-family="'+SANS+'" font-size="12" fill="'+MUTED+'">net profit (bps)</text>';
 
-  // break-even verticals
-  function vline(g,color,label,dash,anchor){
-    var x=X(g);
-    var tx = (anchor==='end') ? x-6 : x+5;
-    s += '<line x1="'+x+'" y1="'+padT+'" x2="'+x+'" y2="'+(padT+plotH)+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="'+dash+'"/>';
-    s += '<text x="'+tx+'" y="'+(padT+12)+'" text-anchor="'+(anchor||'start')+'" font-family="ui-monospace,monospace" font-size="11" fill="'+color+'">'+label+'</text>';
-  }
-  vline(206,'#9aa1ad','control ≈206','3 4','start');
-  vline(91,'#0b4f49','fast ≈91 (fitted)','2 4','end');
+  // Shaded band between the two fitted lines: the constant 115 bps the late fill gives up.
+  var bx1=X(BE_CTRL), bx2=X(gMax);
+  s += '<polygon points="'+bx1+','+Y(fx(BE_CTRL))+' '+bx2+','+Y(fx(gMax))+' '+bx2+','+Y(cx(gMax))+' '+bx1+','+Y(cx(BE_CTRL))+'" fill="'+TEAL+'" opacity="0.08"/>';
+  var gm=430, bxm=X(gm), ym=(Y(fx(gm))+Y(cx(gm)))/2;
+  s += '<text x="'+bxm+'" y="'+(ym-3)+'" text-anchor="middle" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+TEALINK+'">≈115 bps</text>';
+  s += '<text x="'+bxm+'" y="'+(ym+12)+'" text-anchor="middle" font-family="'+SANS+'" font-size="10" fill="'+MUTED+'">what 7 s costs</text>';
 
-  // polylines
-  function line(idx,color){
-    return pts.map(function(p,i){ return X(p[0])+','+Y(p[idx]); }).join(' ');
-  }
-  s += '<polyline points="'+line(1,'#0f766e')+'" fill="none" stroke="#0f766e" stroke-width="2.4"/>';
-  s += '<polyline points="'+line(2,'#9aa1ad')+'" fill="none" stroke="#9aa1ad" stroke-width="2.4"/>';
+  // Fitted lines (slope 1). Fast solid over measured gaps; dashed below 162 where it is extrapolated to break-even. Control dashed throughout (the delayed arm).
+  s += '<line x1="'+X(MEAS_START)+'" y1="'+Y(fx(MEAS_START))+'" x2="'+X(gMax)+'" y2="'+Y(fx(gMax))+'" stroke="'+TEAL+'" stroke-width="2.6" stroke-linecap="round"/>';
+  s += '<line x1="'+X(BE_FAST)+'" y1="'+Y(fx(BE_FAST))+'" x2="'+X(MEAS_START)+'" y2="'+Y(fx(MEAS_START))+'" stroke="'+TEAL+'" stroke-width="2.2" stroke-dasharray="5 5" opacity="0.85"/>';
+  s += '<line x1="'+X(MEAS_START)+'" y1="'+Y(cx(MEAS_START))+'" x2="'+X(gMax)+'" y2="'+Y(cx(gMax))+'" stroke="'+GREY+'" stroke-width="2.6" stroke-dasharray="7 4" stroke-linecap="round"/>';
 
-  // points
+  // End-of-line labels
+  s += '<text x="'+(X(gMax)+9)+'" y="'+(Y(fx(gMax))+4)+'" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+TEALINK+'">fast · 2 s</text>';
+  s += '<text x="'+(X(gMax)+9)+'" y="'+(Y(cx(gMax))+4)+'" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+MUTED+'">control · +7 s</text>';
+
+  // Measured rounds as dots
   pts.forEach(function(p){
-    s += '<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="3.6" fill="#0f766e"/>';
-    s += '<circle cx="'+X(p[0])+'" cy="'+Y(p[2])+'" r="3.6" fill="#9aa1ad"/>';
+    s += '<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="3.4" fill="'+TEAL+'"/>';
+    s += '<circle cx="'+X(p[0])+'" cy="'+Y(p[2])+'" r="3.4" fill="'+GREY+'"/>';
   });
-  // highlight round 32 (g=162)
-  var p32=pts[5];
-  s += '<circle cx="'+X(p32[0])+'" cy="'+Y(p32[2])+'" r="6.5" fill="none" stroke="#c0372e" stroke-width="2"/>';
-  s += '<text x="'+(X(p32[0])-6)+'" y="'+(Y(p32[2])+22)+'" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" fill="#c0372e">round 32 · −30</text>';
+
+  // Break-even markers on the zero line
+  s += '<circle cx="'+X(BE_FAST)+'" cy="'+Y(0)+'" r="4.5" fill="#fff" stroke="'+TEAL+'" stroke-width="2"/>';
+  s += '<text x="'+X(BE_FAST)+'" y="'+(Y(0)-11)+'" text-anchor="middle" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+TEALINK+'">'+BE_FAST+'</text>';
+  s += '<text x="'+X(BE_FAST)+'" y="'+(Y(0)-24)+'" text-anchor="middle" font-family="'+SANS+'" font-size="9.5" fill="'+MUTED+'">fast break-even</text>';
+  s += '<circle cx="'+X(BE_CTRL)+'" cy="'+Y(0)+'" r="4.5" fill="#fff" stroke="'+GREY+'" stroke-width="2"/>';
+  s += '<text x="'+X(BE_CTRL)+'" y="'+(Y(0)-11)+'" text-anchor="middle" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+MUTED+'">'+BE_CTRL+'</text>';
+  s += '<text x="'+X(BE_CTRL)+'" y="'+(Y(0)-24)+'" text-anchor="middle" font-family="'+SANS+'" font-size="9.5" fill="'+MUTED+'">control break-even</text>';
+
+  // Round 32 — smallest measured gap: fast still +72, the late copy −30.
+  var r=pts[5], gx=X(r[0]);
+  s += '<line x1="'+gx+'" y1="'+Y(r[1])+'" x2="'+gx+'" y2="'+Y(r[2])+'" stroke="'+NEG+'" stroke-width="1.3" stroke-dasharray="3 3"/>';
+  var midy=(Y(r[1])+Y(r[2]))/2;
+  s += '<text x="'+(gx-8)+'" y="'+(midy+4)+'" text-anchor="end" font-family="'+MONO+'" font-size="10" fill="'+FAINT+'">102 bps</text>';
+  s += '<circle cx="'+gx+'" cy="'+Y(r[1])+'" r="6.2" fill="none" stroke="'+TEAL+'" stroke-width="2"/>';
+  s += '<circle cx="'+gx+'" cy="'+Y(r[2])+'" r="6.2" fill="none" stroke="'+NEG+'" stroke-width="2"/>';
+  s += '<text x="'+gx+'" y="'+(Y(r[1])-13)+'" text-anchor="middle" font-family="'+SANS+'" font-size="10" font-weight="600" fill="'+MUTED+'">round 32</text>';
+  s += '<text x="'+(gx+11)+'" y="'+(Y(r[1])+4)+'" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+TEALINK+'">+72</text>';
+  s += '<text x="'+(gx+11)+'" y="'+(Y(r[2])+4)+'" font-family="'+MONO+'" font-size="11" font-weight="600" fill="'+NEG+'">−30</text>';
 
   s += '</svg>';
   document.getElementById('be-chart').innerHTML = s;
