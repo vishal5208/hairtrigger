@@ -61,7 +61,7 @@ The control arm does not share the fast arm's slippage guard (it fills with `min
 
 One bias, stated up front: because we are the only participant, the fast arm's own fill is part of the pool state the control faces, so the control is measured against a *slower copy of ourselves* that trades after we did — conservative for the control. Read it as "what a 7 s-late version of this system gets after the 1 s version already traded," not as a claim about external competition.
 
-## Deployed addresses (Version 2)
+## Deployed addresses (Version 2 — current)
 
 | Contract | Chain | Address |
 |---|---|---|
@@ -75,7 +75,7 @@ One bias, stated up front: because we are the only participant, the fast arm's o
 
 WETH is the OP-stack predeploy `0x4200000000000000000000000000000000000006` on both L2s. The reactive is configured `thresholdBps = 150`, `minTradeWeth = 1e14`, `maxTradeWeth = 2e16`, `cooldown = 30s`, `chainCount = 2`, not paused.
 
-**Version 1 deployment** (produced the 28-round latency experiment above; frozen): Reactive `0x882d7B0b7c4414a393374a00Dfe9D2Fe8De2b41D` on Lasna, Base pool `0x6609c7b922D80b1453F84cc5074A531B9EDdB2cE`, Unichain pool `0xb28611F84E3E5FC0cD1a2511A187B31f69C7b9f2`.
+**Version 1 deployment** (produced the 28-round latency experiment above; frozen under `data/archive/fixed-size/`): Reactive `0x882d7B0b7c4414a393374a00Dfe9D2Fe8De2b41D` on Lasna; Base HTRG `0x31717A0a4240A1CDcdf03BEcA675989bb828a579`, pool `0x6609c7b922D80b1453F84cc5074A531B9EDdB2cE`, executor `0x4da64cb93a8b650fd9cda7f50f019a8208fc1866`; Unichain HTRG `0x882d7B0b7c4414a393374a00Dfe9D2Fe8De2b41D` (same bytes as the Lasna reactive — same deployer and nonce on a different chain, expected), pool `0xb28611F84E3E5FC0cD1a2511A187B31f69C7b9f2`, executor `0x43440ba16fbb1c1ac85090e18d39f486bbaf19ad`.
 
 ## Exact subscription parameters
 

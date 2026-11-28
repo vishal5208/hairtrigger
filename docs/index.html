@@ -286,21 +286,7 @@
         <div class="metric"><div class="v pos">+652&nbsp;bps</div><div class="k">median paired fast − control</div></div>
       </div>
       <p class="sec-sub" style="margin-top:14px">The control losing all 23 is the point: <code>x*</code> consumes the gap down to the two-fee band by construction, so the +7&nbsp;s copy replays the same size into a collapsed gap and pays the fee twice. In Version 1 the fixed 0.0004&nbsp;WETH under-sized wide gaps, left profit on the table, and the late copy still cleared 27 of 28. Sizing to the gap is what removes its edge. Gaps here are wide (226–805&nbsp;bps) — a synthetic-flow artifact; the finding is about sizing, not magnitude.</p>
-      <div class="tablewrap" style="margin-top:22px">
-        <table>
-          <thead><tr><th>Contract (Version 2)</th><th>Chain</th><th>Address</th></tr></thead>
-          <tbody>
-            <tr><td>HairtriggerReactive</td><td class="chain-tag">Lasna 5318007</td><td class="mono addr">0xe2342AA8754568A5066D5A5fE30C573DbD13bfC6</td></tr>
-            <tr><td>ArbExecutor (fast + control)</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0x2498b82c1A5328D6Fe706484e5FC1C2E255B09D1</td></tr>
-            <tr><td>MockPool WETH/HTRG</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0xD980C3e0aC619D23E332F44D2bbae9a2526725df</td></tr>
-            <tr><td>HairtriggerToken (HTRG)</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0xE7afB79644836A18D4E0FF4f04933fE2E2d0e334</td></tr>
-            <tr><td>ArbExecutor (fast + control)</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0xDF66258EF140C85BbBA77668213BA8333b2509C0</td></tr>
-            <tr><td>MockPool WETH/HTRG</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0x8dc63afaCA7807f7CAf5817cC97D1923C8B7FEF8</td></tr>
-            <tr><td>HairtriggerToken (HTRG)</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0x160c7446519613a98b4F4b5D43E09B93739fEC2F</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="sec-sub" style="margin-top:14px;font-size:.85rem">The 28-round latency experiment above ran on a prior (Version 1) deployment; those addresses are kept in the repository for provenance.</p>
+      <p class="sec-sub" style="margin-top:14px;font-size:.9rem">These results were produced by the current deployment — all seven contract addresses are listed under <a href="#contracts">Deployed contracts</a>.</p>
     </div>
   </section>
 
@@ -365,23 +351,23 @@
       <div class="sec-head">
         <div class="sec-kicker">06 — Deployed contracts</div>
         <h2>Read the source, check the bytecode.</h2>
-        <p class="sec-sub">Seven deployed contracts across three chains. The executor treats every callback as untrusted input and re-checks the quote against live reserves before trading.</p>
+        <p class="sec-sub">Seven contracts across three chains, live on <b>Version 2</b> (net-optimal sizing). The executor treats every callback as untrusted input and re-checks the quote against live reserves before trading.</p>
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Contract</th><th>Chain</th><th>Address</th></tr></thead>
+          <thead><tr><th>Contract (Version 2 — current)</th><th>Chain</th><th>Address</th></tr></thead>
           <tbody>
-            <tr><td>HairtriggerReactive</td><td class="chain-tag">Lasna 5318007</td><td class="mono addr">0x882d7B0b7c4414a393374a00Dfe9D2Fe8De2b41D</td></tr>
-            <tr><td>ArbExecutor (fast + control)</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0x4da64cb93a8b650fd9cda7f50f019a8208fc1866</td></tr>
-            <tr><td>MockPool WETH/HTRG</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0x6609c7b922D80b1453F84cc5074A531B9EDdB2cE</td></tr>
-            <tr><td>HairtriggerToken (HTRG)</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0x31717A0a4240A1CDcdf03BEcA675989bb828a579</td></tr>
-            <tr><td>ArbExecutor (fast + control)</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0x43440ba16fbb1c1ac85090e18d39f486bbaf19ad</td></tr>
-            <tr><td>MockPool WETH/HTRG</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0xb28611F84E3E5FC0cD1a2511A187B31f69C7b9f2</td></tr>
-            <tr><td>HairtriggerToken (HTRG)</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0x882d7B0b7c4414a393374a00Dfe9D2Fe8De2b41D</td></tr>
+            <tr><td>HairtriggerReactive</td><td class="chain-tag">Lasna 5318007</td><td class="mono addr">0xe2342AA8754568A5066D5A5fE30C573DbD13bfC6</td></tr>
+            <tr><td>ArbExecutor (fast + control)</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0x2498b82c1A5328D6Fe706484e5FC1C2E255B09D1</td></tr>
+            <tr><td>MockPool WETH/HTRG</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0xD980C3e0aC619D23E332F44D2bbae9a2526725df</td></tr>
+            <tr><td>HairtriggerToken (HTRG)</td><td class="chain-tag">Base Sepolia 84532</td><td class="mono addr">0xE7afB79644836A18D4E0FF4f04933fE2E2d0e334</td></tr>
+            <tr><td>ArbExecutor (fast + control)</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0xDF66258EF140C85BbBA77668213BA8333b2509C0</td></tr>
+            <tr><td>MockPool WETH/HTRG</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0x8dc63afaCA7807f7CAf5817cC97D1923C8B7FEF8</td></tr>
+            <tr><td>HairtriggerToken (HTRG)</td><td class="chain-tag">Unichain Sepolia 1301</td><td class="mono addr">0x160c7446519613a98b4F4b5D43E09B93739fEC2F</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="sec-sub" style="margin-top:14px;font-size:.85rem">These are the Version 1 contracts that produced the 28-round experiment above; the current Version 2 deployment is listed in the Version 2 section. (In Version 1 the Unichain HTRG token shares an address with the Lasna reactive: same deployer, same nonce on different chains — expected, not an error.)</p>
+      <p class="sec-sub" style="margin-top:14px;font-size:.85rem">The 28-round latency experiment above ran on the prior <b>Version 1</b> deployment (fixed 0.0004 WETH trade): Reactive <span class="addr">0x882d7B0b7c4414a393374a00Dfe9D2Fe8De2b41D</span> (Lasna), Base pool <span class="addr">0x6609c7b922D80b1453F84cc5074A531B9EDdB2cE</span>, Unichain pool <span class="addr">0xb28611F84E3E5FC0cD1a2511A187B31f69C7b9f2</span>. The full Version 1 set is in the repository.</p>
     </div>
   </section>
 
