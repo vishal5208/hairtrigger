@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Hairtrigger — what seven seconds of cross-chain latency costs</title>
-<meta name="description" content="A paired on-chain experiment on an identical cross-chain arbitrage trade. At the tightest gap of the run the fast fill netted +72 bps and the seven-second copy lost 30; fitted break-evens sit at 91 and 206 bps." />
+<title>Hairtrigger — what being second into a pool costs</title>
+<meta name="description" content="A paired on-chain experiment on an identical cross-chain arbitrage trade. At the tightest gap of the run the fast fill netted +72 bps and the copy behind it −30; the difference is the first fill's footprint. Fitted break-evens sit at 91 and 206 bps." />
 <style>
   :root{
     --bg:#ffffff; --bg-alt:#f6f6f3; --card:#ffffff;
@@ -161,8 +161,8 @@
 <main id="top">
   <div class="container hero">
     <div class="eyebrow">Reactive Omni Buildathon · Every Second Counts</div>
-    <h1>The same trade, twice.<br>Fast fill: <span class="accent">+72&nbsp;bps</span>.<br>Seven seconds late: <span class="accent">−30&nbsp;bps</span>.</h1>
-    <p class="subhead">A paired on-chain experiment: one cross-chain arbitrage trade filled immediately, and again seven seconds later, from the same detection. These are round 32 — the tightest gap the run produced (162 bps). Fitted across all 28 rounds, the fast arm breaks even near 91 bps of gap and the +7 s arm near 206, but the system only fires above a 150 bps threshold, so 91 is an extrapolation below every gap it actually traded. The distance between the two break-evens is what lateness costs.</p>
+    <h1>The same trade, twice.<br>First into the pool: <span class="accent">+72&nbsp;bps</span>.<br>Second, same trade: <span class="accent">−30&nbsp;bps</span>.</h1>
+    <p class="subhead">A paired on-chain experiment: one cross-chain arbitrage trade filled immediately, and again seven seconds later, from the same detection. These are round 32 — the tightest gap the run produced (162 bps). Fitted across all 28 rounds, the fast arm breaks even near 91 bps of gap and the +7 s arm near 206, but the system only fires above a 150 bps threshold, so 91 is an extrapolation below every gap it actually traded. The distance between the two break-evens is what the second trader pays: the first fill's footprint, not a function of the seconds elapsed. The destination pool is idle between the two fills, so a copy landing at 9&nbsp;s or 12&nbsp;s faces the same price.</p>
 
     <div class="stat-row">
       <div class="stat">
@@ -235,7 +235,7 @@
         </div>
       </div>
       <p class="sec-sub" style="margin-top:22px">
-        <strong>One bias, stated up front:</strong> because we are the only participant, the fast arm's own fill is part of the pool state the control faces. The control is measured against a <em>slower copy of ourselves</em>, which is conservative for the control. Read the column as “what a 7&nbsp;s-late version of this system gets after the 2&nbsp;s version has already traded.”
+        <strong>One bias, stated up front:</strong> because we are the only participant, the fast arm's own fill is part of the pool state the control faces. The control is measured against a <em>slower copy of ourselves</em>, which is conservative for the control. Read the column as “the second trader into this pool, after the 2&nbsp;s version has already moved it” — the first fill's footprint. The pool is idle between the two fills, so it is the cost of being second, not of the specific delay.
       </p>
     </div>
   </section>
@@ -250,7 +250,7 @@
 
       <div class="metric-grid">
         <div class="metric"><div class="v pos">+0.0000053</div><div class="k">WETH median paired gain · fast − control on the identical 0.0004 order</div></div>
-        <div class="metric"><div class="v pos">≈134&nbsp;bps</div><div class="k">median penalty of the delayed fill, as a share of the 0.0004 WETH trade</div></div>
+        <div class="metric"><div class="v pos">≈134&nbsp;bps</div><div class="k">median second-trader penalty (the first fill's footprint), as a share of the 0.0004 WETH trade</div></div>
         <div class="metric"><div class="v">+22%</div><div class="k">fast arm nets vs the slower copy of itself</div></div>
         <div class="metric"><div class="v">28/28</div><div class="k">fast arm net-positive (cleared costs)</div></div>
         <div class="metric"><div class="v">27/28</div><div class="k">control still cleared costs after +7&nbsp;s</div></div>
@@ -268,7 +268,7 @@
           <div class="track"><div class="fill control" style="width:100%"></div></div>
           <div class="val">12&nbsp;s</div>
         </div>
-        <p class="sec-sub" style="margin-top:16px;font-size:.86rem">Same trade, same pool state, two prices — the gap between the bars is the delayed-fill penalty. Fast p90 3&nbsp;s, control p90 14&nbsp;s.</p>
+        <p class="sec-sub" style="margin-top:16px;font-size:.86rem">Same trade, same pool state, two prices — the gap between the bars is the first fill's footprint, what being second costs. Fast p90 3&nbsp;s, control p90 14&nbsp;s. The control's extra seconds are its keeper's tx send and inclusion — it fills a median ~6&nbsp;s after its own 7&nbsp;s gate opens, on a chain that mines 1&nbsp;s blocks — not a longer hold. The destination pool is idle between the fast fill (~2&nbsp;s) and the control fill (~12&nbsp;s), so the late fill's price is the same whether it lands at nine seconds or twelve.</p>
       </div>
     </div>
   </section>
@@ -309,7 +309,7 @@
       </div>
 
       <div class="callout">
-        <b>Crossover, measured on consecutive rounds as the gap converged.</b> Round&nbsp;27 (460&nbsp;bps): both profit. Round&nbsp;32 (162&nbsp;bps): the delayed fill nets <b>−30&nbsp;bps</b> while the fast fill still nets <b>+72&nbsp;bps</b>. The fast break-even is extrapolated to ≈91&nbsp;bps and the control to ≈206&nbsp;bps. <b>Below 162&nbsp;bps the fast floor is fitted, not measured</b> — that is the smallest gap this run produced.
+        <b>Crossover, measured on consecutive rounds as the gap converged.</b> Round&nbsp;27 (460&nbsp;bps): both profit. Round&nbsp;32 (162&nbsp;bps): the second entry nets <b>−30&nbsp;bps</b> while the first fill still nets <b>+72&nbsp;bps</b>. The fast break-even is extrapolated to ≈91&nbsp;bps and the control to ≈206&nbsp;bps. <b>Below 162&nbsp;bps the fast floor is fitted, not measured</b> — that is the smallest gap this run produced.
       </div>
     </div>
   </section>
@@ -343,7 +343,7 @@
         <b>The delivery floor is not a fee we can bid away.</b> In the callback configuration <code>gasLimit</code> is a compute ceiling, not a priority bid. A no-op reactive that does nothing but request a trivial callback arrived in the same 2–3&nbsp;s as the trading callback (median callback leg 3&nbsp;s over 20 deliveries; the arb's own callback leg is 3&nbsp;s over 28 rounds) — and running it at 200,000 gas against the arb's 400,000 changed nothing. Reactive's documentation states that a higher <code>gasLimit</code> does not accelerate delivery or increase priority, and the config carries only <code>chainId</code>, <code>recipient</code>, <code>gasLimit</code> and <code>payload</code>, with no priority field (<a href="https://dev.reactive.network/economy" target="_blank" rel="noopener">dev.reactive.network</a>). So the 2–3&nbsp;s callback leg on the Lasna→Unichain path in our runs is relayer transit plus destination block inclusion — the floor of that path, not a number we tuned.
       </div>
 
-      <p class="sec-sub" style="margin-top:22px"><strong>Profit is mark-to-market:</strong> HTRG bought on the destination is valued at the origin venue's post-swap spot price. Nothing is sold and nothing crosses a bridge; the tokens are independent deployments. The experiment measures whether the decision arrived before the edge decayed.</p>
+      <p class="sec-sub" style="margin-top:22px"><strong>Profit is mark-to-market:</strong> HTRG bought on the destination is valued at the origin venue's post-swap spot price. Nothing is sold and nothing crosses a bridge; the tokens are independent deployments. The experiment measures the first fill's footprint on the second entry — the cost of being second into the pool.</p>
     </div>
   </section>
 
@@ -400,7 +400,7 @@ python3 analysis/pingfloor.py</pre>
     <div class="foot-grid">
       <div>
         <div class="brand" style="margin-bottom:10px"><span class="dot"></span>Hairtrigger</div>
-        <p class="sec-sub" style="font-size:.9rem">Seven seconds of lateness, on an identical trade, against our own copy — measured, not estimated.</p>
+        <p class="sec-sub" style="font-size:.9rem">The second trader into the same pool, on the same trade, against our own copy — the first fill's footprint, measured not estimated.</p>
       </div>
       <div class="foot-links">
         <a class="btn ghost" href="https://github.com/vishal5208/hairtrigger" target="_blank" rel="noopener">Repository</a>
