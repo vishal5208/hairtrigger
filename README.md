@@ -214,6 +214,7 @@ Two sizes in the table are deliberately different and should not be conflated. *
 - Fast-arm end-to-end latency (origin swap block → destination fill block): median 2s, p90 3s (min 2s, max 3s), ±1s quantized
 - Callback leg (Lasna reaction → fill): median 3s, p90 3s
 - Control-arm end-to-end latency: median 12s, p90 14s (±1s quantized). Of this, 7s is the enforced gate; the fill lands a median ~6s (range 4–7s) *after* the gate opens. That surplus is the keeper's tx send + inclusion, not extra hold — the gate is checked on the destination clock (`detectedAt+7`) and Unichain mines 1s blocks, so a fill 4–7s late cannot be block time. It does not move the result: the destination pool is idle between the fast fill (~2s) and the control fill (~12s) — the keeper's `runControl` is the only swapper in that window — so the control's fill price is identical to a fill at exactly +7s. Surplus distribution across the 28 rounds: 4s×1, 5s×10, 6s×9, 7s×8.
+- The control lands at about 12 s end to end: the 7 s gate plus roughly 5 s of keeper overhead in our runs. The destination pool takes no other trade between the two fills, so the fill price does not depend on which of those seconds it lands in.
 - Fast arm net-positive: 28/28
 - Control cleared costs (+7s): 27/28 (96%)
 - Median fast net: 0.00002962 WETH
